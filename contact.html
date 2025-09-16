@@ -219,7 +219,7 @@
                                 </div>
                                 <div class="col-12">
                                     <div class="form-floating">
-                                        <textarea class="form-control" placeholder="Leave a message here" id="message" name="message" style="height: 120px;" required></textarea>
+                                        <textarea class="form-control" placeholder="Leave a message here" id="message" name="message" style="height: 120px;"></textarea>
                                         <label for="message">Your Message</label>
                                     </div>
                                 </div>
@@ -415,10 +415,8 @@
                 message: 'Please enter a valid email address'
             },
             message: {
-                required: true,
-                minLength: 10,
-                maxLength: 500,
-                message: 'Message must be 10-500 characters long'
+                required: false,
+                message: ''
             }
         };
 

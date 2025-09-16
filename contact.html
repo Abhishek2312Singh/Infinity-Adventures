@@ -194,7 +194,47 @@
                         </div>
                     </div>
                 </div>
-                
+                <div class="col-lg-8 col-md-6 wow fadeInUp" data-wow-delay="0.3s">
+                    <div class="contact-form h-100 p-5">
+                        <h4>Send us a Message</h4>
+                        <form id="contactForm">
+                            <div class="row g-4">
+                                <div class="col-12 col-sm-6">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="fullName" name="fullName" placeholder="Your Name" required>
+                                        <label for="fullName">Full Name</label>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    <div class="form-floating">
+                                        <input type="tel" class="form-control" id="contact" name="contact" placeholder="1234567890" maxlength="10" required>
+                                        <label for="contact">Contact Number</label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        <input type="email" class="form-control" id="email" name="email" placeholder="Your Email" required>
+                                        <label for="email">Email Address</label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        <textarea class="form-control" placeholder="Leave a message here" id="message" name="message" style="height: 120px;" required></textarea>
+                                        <label for="message">Your Message</label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <button class="btn btn-submit w-100" type="submit" id="submitBtn">
+                                        <i class="fa fa-paper-plane me-2"></i><span id="btnText">Send Message</span>
+                                    </button>
+                                </div>
+                                <div class="col-12" id="messageContainer" style="display: none;">
+                                    <div id="alertMessage" class="alert" role="alert"></div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -329,6 +369,16 @@
     <!-- Footer End -->
 
     <!-- JavaScript Libraries -->
+     <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-17245882372">
+</script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'AW-17245882372');
+</script>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="lib/wow/wow.min.js"></script>
@@ -342,6 +392,266 @@
 
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
+    
+    <!-- Contact Form JavaScript -->
+    <script>
+        // Validation rules
+        const validationRules = {
+            fullName: {
+                required: true,
+                minLength: 2,
+                maxLength: 50,
+                pattern: /^[a-zA-Z\s]+$/,
+                message: 'Full name must be 2-50 characters and contain only letters and spaces'
+            },
+            contact: {
+                required: true,
+                pattern: /^[0-9]{10}$/,
+                message: 'Please enter a valid 10-digit phone number'
+            },
+            email: {
+                required: true,
+                pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: 'Please enter a valid email address'
+            },
+            message: {
+                required: true,
+                minLength: 10,
+                maxLength: 500,
+                message: 'Message must be 10-500 characters long'
+            }
+        };
+
+        // Add real-time validation
+        function addRealTimeValidation() {
+            Object.keys(validationRules).forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                const label = document.querySelector(`label[for="${fieldId}"]`);
+                
+                field.addEventListener('blur', () => validateField(fieldId));
+                field.addEventListener('input', () => clearFieldError(fieldId));
+            });
+            
+            // Special handling for contact number - only allow digits
+            const contactField = document.getElementById('contact');
+            contactField.addEventListener('input', function(e) {
+                // Remove any non-digit characters
+                e.target.value = e.target.value.replace(/\D/g, '');
+                clearFieldError('contact');
+            });
+        }
+
+        // Validate individual field
+        function validateField(fieldId) {
+            const field = document.getElementById(fieldId);
+            const value = field.value.trim();
+            const rules = validationRules[fieldId];
+            const label = document.querySelector(`label[for="${fieldId}"]`);
+            
+            // Clear previous error
+            clearFieldError(fieldId);
+            
+            // Check if required field is empty
+            if (rules.required && !value) {
+                showFieldError(fieldId, `${label.textContent} is required`);
+                return false;
+            }
+            
+            // Skip other validations if field is empty and not required
+            if (!value && !rules.required) {
+                return true;
+            }
+            
+            // Check minimum length
+            if (rules.minLength && value.length < rules.minLength) {
+                showFieldError(fieldId, `${label.textContent} must be at least ${rules.minLength} characters`);
+                return false;
+            }
+            
+            // Check maximum length
+            if (rules.maxLength && value.length > rules.maxLength) {
+                showFieldError(fieldId, `${label.textContent} must be no more than ${rules.maxLength} characters`);
+                return false;
+            }
+            
+            // Check pattern
+            if (rules.pattern && !rules.pattern.test(value)) {
+                showFieldError(fieldId, rules.message);
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Show field error
+        function showFieldError(fieldId, message) {
+            const field = document.getElementById(fieldId);
+            const formGroup = field.closest('.form-floating');
+            
+            // Add error class
+            field.classList.add('is-invalid');
+            formGroup.classList.add('has-error');
+            
+            // Remove existing error message
+            const existingError = formGroup.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            // Add error message
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message text-danger small mt-1';
+            errorDiv.textContent = message;
+            formGroup.appendChild(errorDiv);
+        }
+
+        // Clear field error
+        function clearFieldError(fieldId) {
+            const field = document.getElementById(fieldId);
+            const formGroup = field.closest('.form-floating');
+            
+            // Remove error classes
+            field.classList.remove('is-invalid');
+            formGroup.classList.remove('has-error');
+            
+            // Remove error message
+            const errorMessage = formGroup.querySelector('.error-message');
+            if (errorMessage) {
+                errorMessage.remove();
+            }
+        }
+
+        // Validate entire form
+        function validateForm() {
+            let isValid = true;
+            const errors = [];
+            
+            Object.keys(validationRules).forEach(fieldId => {
+                if (!validateField(fieldId)) {
+                    isValid = false;
+                }
+            });
+            
+            return isValid;
+        }
+
+        // Form submission handler
+        document.getElementById('contactForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Clear previous messages
+            const messageContainer = document.getElementById('messageContainer');
+            messageContainer.style.display = 'none';
+            
+            // Validate form
+            if (!validateForm()) {
+                showMessage('danger', 'Please fix the errors below before submitting.');
+                // Scroll to first error
+                const firstError = document.querySelector('.is-invalid');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstError.focus();
+                }
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            
+            // Get form data
+            const formData = {
+                fullName: document.getElementById('fullName').value.trim(),
+                contact: document.getElementById('contact').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                message: document.getElementById('message').value.trim()
+            };
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            btnText.textContent = 'Sending...';
+            submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin me-2"></i><span id="btnText">Sending...</span>';
+            
+            try {
+                const res = await fetch('https://www.infinityadventures.co.in/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include', // Important for cookies if needed
+                    body: JSON.stringify(formData)
+                });
+
+                
+                if (res.ok) {
+                    // Success - check content type first
+                    const contentType = res.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        const result = await res.json();
+                        showMessage('success', result.message || 'Message sent successfully! We will get back to you soon.');
+                    } else {
+                        const result = await res.text();
+                        showMessage('success', result || 'Message sent successfully! We will get back to you soon.');
+                    }
+                    document.getElementById('contactForm').reset();
+                    // Clear any remaining field errors
+                    Object.keys(validationRules).forEach(fieldId => clearFieldError(fieldId));
+                } else {
+                    // Error - check content type first
+                    const contentType = res.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        const errorData = await res.json();
+                        showMessage('danger', errorData.message || 'Failed to send message. Please try again.');
+                    } else {
+                        const errorText = await res.text();
+                        showMessage('danger', errorText || 'Failed to send message. Please try again.');
+                    }
+                }
+            } catch (error) {
+                // Network or other error
+                showMessage('danger', 'Unable to connect to server. Please check your connection and try again.');
+                console.error('Error:', error);
+            } finally {
+                // Reset button state
+                submitBtn.disabled = false;
+                btnText.textContent = 'Send Message';
+                submitBtn.innerHTML = '<i class="fa fa-paper-plane me-2"></i><span id="btnText">Send Message</span>';
+            }
+        });
+        
+        function showMessage(type, message) {
+            const messageContainer = document.getElementById('messageContainer');
+            const alertMessage = document.getElementById('alertMessage');
+            
+            // Remove existing classes
+            alertMessage.className = 'alert';
+            
+            // Add appropriate class
+            if (type === 'success') {
+                alertMessage.classList.add('alert-success');
+            } else if (type === 'danger') {
+                alertMessage.classList.add('alert-danger');
+            }
+            
+            // Set message and show
+            alertMessage.textContent = message;
+            messageContainer.style.display = 'block';
+            
+            // Scroll to message
+            messageContainer.scrollIntoView({ behavior: 'smooth' });
+            
+            // Auto-hide success messages after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageContainer.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Initialize validation on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            addRealTimeValidation();
+        });
+    </script>
 </body>
 
 </html>
